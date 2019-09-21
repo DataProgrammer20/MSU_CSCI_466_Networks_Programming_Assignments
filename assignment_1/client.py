@@ -16,10 +16,11 @@ class BattleshipClient:
         self.y = int(y)
 
         connection = HTTPConnection(self.ip, self.port)
-        print(connection)
-        connection.request("GET", "/")
+        connection.request("POST", "/")
         response = connection.getresponse()
-        print("Status: ", response.status)
+        print("Status: " + str(response.status))
+        print("Reason: " + str(response.reason))
+        print("Message: " + str(response.read()).replace('b', ''))
 
 client = BattleshipClient(
     system.argv[1],
