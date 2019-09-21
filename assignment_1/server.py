@@ -5,6 +5,7 @@ import sys as system
 class BattleshipServer:
     port = 6000
     client_board_file = ''
+    client_board = []
     server_board = [
         ['_', '_', '_', '_', '_', '_', '_', '_', '_', '_'],
         ['_', '_', '_', '_', '_', '_', '_', '_', '_', '_'],
@@ -35,8 +36,7 @@ class BattleshipServer:
         print('Starting connection handler...')
         self.handler(server_socket)
 
-    @staticmethod
-    def handler(server_socket=None):
+    def handler(self, server_socket=None):
         print('Waiting for connections...')
         while True:
             client_socket, address = server_socket.accept()
@@ -48,9 +48,15 @@ class BattleshipServer:
 
     def parse_client_board(self):
         client_file = open(self.client_board_file, 'r')
-        line = client_file.readline()
-        while line:
-            print(line)
-            line = client_file.readline()
+        board_line = []
+        file_line = client_file.readline()
+        while file_line:
+            for index in range(0, 10):
+                character = file_line[index]
+                board_line.append(character)
+            self.client_board.append(board_line)
+            board_line = []
+            file_line = client_file.readline()
+        client_file.close()
 
 server = BattleshipServer(system.argv[1], system.argv[2])
