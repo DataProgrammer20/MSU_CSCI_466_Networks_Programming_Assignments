@@ -1,9 +1,9 @@
-from socket import *
 import sys as system
+from http.server import *
 
 
-class BattleshipServer:
-    port = 6000
+class BattleshipServer(BaseHTTPRequestHandler):
+    port = 0
     client_board_file = ''
     client_board = []
     server_board = [
@@ -19,33 +19,6 @@ class BattleshipServer:
         ['_', '_', '_', '_', '_', '_', '_', '_', '_', '_']
     ]
 
-    def __init__(self, port=6000, board_file=''):
-        self.port = int(port)
-        self.client_board_file = board_file
-
-        # Debugging
-        print('port and board file values: ', self.port, self.client_board_file)
-        # ===========
-
-        server_socket = socket(AF_INET, SOCK_STREAM)
-        server_socket.bind(('localhost', self.port))
-        server_socket.listen(1)
-        print('Server is listening on IP: 127.0.0.1, ' + 'port: ' + str(self.port))
-        print('Parsing client board...')
-        self.parse_client_board()
-        print('Starting connection handler...')
-        self.handler(server_socket)
-
-    def handler(self, server_socket=None):
-        print('Waiting for connections...')
-        while True:
-            client_socket, address = server_socket.accept()
-            print('Got a client at: ' + str(address))
-            sentence = client_socket.recv(1024).decode()
-            capitalized_sentence = sentence.upper()
-            client_socket.send(capitalized_sentence.encode())
-            client_socket.close()
-
     def parse_client_board(self):
         client_file = open(self.client_board_file, 'r')
         board_line = []
@@ -59,4 +32,41 @@ class BattleshipServer:
             file_line = client_file.readline()
         client_file.close()
 
-server = BattleshipServer(system.argv[1], system.argv[2])
+    @classmethod
+    def run(cls, port=5000, client_board_file=''):
+        cls.port = int(port)
+        cls.client_board_file = client_board_file
+        # Starting server
+        server_address = ('127.0.0.1', cls.port)
+        httpd = HTTPServer(server_address, BattleshipServer)
+        print('Server is listening on IP: 127.0.0.1, ' + 'port: ' + str(cls.port))
+        print('Parsing client board...')
+        cls.parse_client_board(cls)
+        print('Awaiting client connections...')
+        httpd.serve_forever()
+
+    def do_GET(self):
+        # Send response status code
+        self.send_response(200)
+        # Send headers
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+        # Send message back to client
+        message = "Welcome to the Battleship server!"
+        # Write content as utf-8 data
+        self.wfile.write(bytes(message, "utf8"))
+        return
+
+    def do_POST(self):
+        # Send response status code
+        self.send_response(200)
+        # Send headers
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+        # Send message back to client
+        message = "You fired your cannon!"
+        # Write content as utf-8 data
+        self.wfile.write(bytes(message, "utf8"))
+        return
+
+BattleshipServer.run(system.argv[1], system.argv[2])
