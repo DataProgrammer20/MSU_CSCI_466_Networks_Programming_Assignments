@@ -1,0 +1,21 @@
+# Game board (initial, client)
+__________
+__________
+__________
+__________
+__________
+__________
+__________
+__________
+__________
+__________
+
+
+
+# Boat tokens
+
+CCCCC - Carrier
+BBBB - Battleship
+RRR - Cruiser
+SSS - Submarine
+DD - Destroyer
