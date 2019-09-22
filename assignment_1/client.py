@@ -16,7 +16,7 @@ class BattleshipClient:
         self.y = int(y)
 
         connection = HTTPConnection(self.ip, self.port)
-        connection.request("POST", "/")
+        connection.request("POST", "http://127.0.0.1:5000?x=" + str(self.x) + "&y=" + str(self.y))
         response = connection.getresponse()
         print("Status: " + str(response.status))
         print("Reason: " + str(response.reason))

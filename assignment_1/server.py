@@ -1,4 +1,6 @@
 import sys as system
+import random
+import urllib.parse as urlparse
 from http.server import *
 
 
@@ -7,14 +9,14 @@ class BattleshipServer(BaseHTTPRequestHandler):
     client_board_file = ''
     client_board = []
     server_board = [
+        ['_', 'C', '_', '_', '_', '_', '_', '_', '_', '_'],
+        ['_', 'C', '_', '_', '_', '_', '_', '_', 'S', '_'],
+        ['_', 'C', '_', '_', '_', '_', '_', '_', 'S', '_'],
+        ['_', 'C', '_', 'B', 'B', 'B', 'B', '_', 'S', '_'],
+        ['_', 'C', '_', '_', '_', '_', '_', '_', '_', '_'],
         ['_', '_', '_', '_', '_', '_', '_', '_', '_', '_'],
-        ['_', '_', '_', '_', '_', '_', '_', '_', '_', '_'],
-        ['_', '_', '_', '_', '_', '_', '_', '_', '_', '_'],
-        ['_', '_', '_', '_', '_', '_', '_', '_', '_', '_'],
-        ['_', '_', '_', '_', '_', '_', '_', '_', '_', '_'],
-        ['_', '_', '_', '_', '_', '_', '_', '_', '_', '_'],
-        ['_', '_', '_', '_', '_', '_', '_', '_', '_', '_'],
-        ['_', '_', '_', '_', '_', '_', '_', '_', '_', '_'],
+        ['_', '_', '_', '_', '_', '_', '_', 'D', '_', '_'],
+        ['_', 'R', 'R', 'R', '_', '_', '_', 'D', '_', '_'],
         ['_', '_', '_', '_', '_', '_', '_', '_', '_', '_'],
         ['_', '_', '_', '_', '_', '_', '_', '_', '_', '_']
     ]
@@ -58,6 +60,15 @@ class BattleshipServer(BaseHTTPRequestHandler):
         return
 
     def do_POST(self):
+        url = self.path
+        # print(url)
+        parsed_url = urlparse.urlparse(url)
+        # print(parsed_url)
+        y_coord = int(urlparse.parse_qs(parsed_url.query)['y'][0])
+        x_coord = int(urlparse.parse_qs(parsed_url.query)['x'][0])
+        # print(y_coord, x_coord)
+        
+
         # Send response status code
         self.send_response(200)
         # Send headers
