@@ -7,6 +7,12 @@ from http.server import *
 class BattleshipServer(BaseHTTPRequestHandler):
     port = 0
     client_board_file = ''
+    client_ship_count = 5
+    server_ship_count = 5
+    server_victory = False
+    client_victory = True
+    server_tokens = {'C': 5, 'B': 4, 'R': 3, 'S': 3, 'D': 2}
+    client_tokens = {'C': 5, 'B': 4, 'R': 3, 'S': 3, 'D': 2}
     client_board = []
     server_board = [
         ['_', 'C', '_', '_', '_', '_', '_', '_', '_', '_'],
@@ -20,6 +26,26 @@ class BattleshipServer(BaseHTTPRequestHandler):
         ['_', '_', '_', '_', '_', '_', '_', '_', '_', '_'],
         ['_', '_', '_', '_', '_', '_', '_', '_', '_', '_']
     ]
+
+    # def server_turn(self):
+    #
+
+    def check_victory(self, ship_count, player):
+
+        print(self.server_ship_count)
+
+        result = [False, '']
+        if ship_count == 0:
+            result[0] = True
+            result[1] = "The " + player + " has won the game!"
+            return result
+        return result
+
+    def send_http_response(self, status, headers, message):
+        self.send_response(status)
+        self.send_header(headers[0], headers[1])
+        self.end_headers()
+        self.wfile.write(bytes(message, "utf8"))
 
     def parse_client_board(self):
         client_file = open(self.client_board_file, 'r')
@@ -60,24 +86,62 @@ class BattleshipServer(BaseHTTPRequestHandler):
         return
 
     def do_POST(self):
+        status = 0
+        message = ''
+        headers = []
+        sink = ''
         url = self.path
-        # print(url)
         parsed_url = urlparse.urlparse(url)
-        # print(parsed_url)
         y_coord = int(urlparse.parse_qs(parsed_url.query)['y'][0])
         x_coord = int(urlparse.parse_qs(parsed_url.query)['x'][0])
-        # print(y_coord, x_coord)
-        
+        game_over = self.check_victory(self.server_ship_count, self.server_tokens, 'client')
 
-        # Send response status code
-        self.send_response(200)
-        # Send headers
-        self.send_header('Content-type', 'text/html')
-        self.end_headers()
-        # Send message back to client
-        message = "You fired your cannon!"
-        # Write content as utf-8 data
-        self.wfile.write(bytes(message, "utf8"))
+        if game_over[0]:
+            status = 200
+            headers.append('URL')
+            headers.append('127.0.0.1:5000')
+            self.send_http_response(status, headers, game_over[1])
+            return
+
+        if y_coord > 9 or y_coord < 0 or x_coord > 9 or x_coord < 0:
+            status = 404
+            headers.append('URL')
+            headers.append('127.0.0.1:5000')
+            message = 'Values out of range!'
+
+        elif self.server_board[y_coord][x_coord] == 'C' or self.server_board[y_coord][x_coord] == 'B' or self.server_board[y_coord][x_coord] == 'R' or self.server_board[y_coord][x_coord] == 'S' or self.server_board[y_coord][x_coord] == 'D':
+            key = self.server_board[y_coord][x_coord]
+            if self.server_tokens[key] == 1:
+                sink = '&sink=' + key
+                self.server_ship_count -= 1
+            self.server_tokens[key] -= 1
+            self.server_board[y_coord][x_coord] = 'X'
+            status = 200
+            headers.append('URL')
+            headers.append('127.0.0.1:5000?hit=1' + sink)
+            message = 'You hit a ship!'
+
+        elif self.server_board[y_coord][x_coord] == '_':
+            self.server_board[y_coord][x_coord] = 'X'
+            status = 200
+            headers.append('URL')
+            headers.append('127.0.0.1:5000?hit=0')
+            message = 'You missed!'
+
+        elif self.server_board[y_coord][x_coord] == 'X':
+            status = 410
+            headers.append('URL')
+            headers.append('127.0.0.1:5000')
+            message = 'You already hit that location!'
+
+        else:
+            status = 400
+            headers.append('URL')
+            headers.append('127.0.0.1:5000')
+            message = 'Unknown command'
+
+        print(self.server_ship_count)
+        self.send_http_response(status, headers, message)
         return
 
 BattleshipServer.run(system.argv[1], system.argv[2])

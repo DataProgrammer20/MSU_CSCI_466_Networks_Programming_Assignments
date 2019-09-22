@@ -9,11 +9,11 @@ class BattleshipClient:
     y = 0
     client_socket = ''
 
-    def __init__(self, ip="127.0.0.1", port=5000, x=0, y=0):
+    def __init__(self, ip="127.0.0.1", port=5000, y=0, x=0):
         self.ip = ip
         self.port = int(port)
-        self.x = int(x)
         self.y = int(y)
+        self.x = int(x)
 
         connection = HTTPConnection(self.ip, self.port)
         connection.request("POST", "http://127.0.0.1:5000?x=" + str(self.x) + "&y=" + str(self.y))
@@ -21,6 +21,7 @@ class BattleshipClient:
         print("Status: " + str(response.status))
         print("Reason: " + str(response.reason))
         print("Message: " + str(response.read()).replace('b', ''))
+        print("URL: " + response.getheader('URL'))
 
 client = BattleshipClient(
     system.argv[1],
