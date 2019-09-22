@@ -8,8 +8,6 @@ class BattleshipServer(BaseHTTPRequestHandler):
     port = 0
     client_board_file = ''
     server_board_file = 'opponent_board.txt'
-    client_ship_count = 5
-    server_ship_count = 5
     server_victory = False
     client_victory = True
     server_tokens = {'C': 5, 'B': 4, 'R': 3, 'S': 3, 'D': 2}
@@ -19,14 +17,12 @@ class BattleshipServer(BaseHTTPRequestHandler):
 
     def server_turn(self):
         print(self.server_tokens)
-        print(self.server_ship_count)
+        print(self.client_tokens)
         print('Server is taking a turn...')
         rand_y = random.randint(1, 9)
         rand_x = random.randint(1, 9)
         if self.client_board[rand_y][rand_x] == 'C' or self.client_board[rand_y][rand_x] == 'B' or self.client_board[rand_y][rand_x] == 'R' or self.client_board[rand_y][rand_x] == 'S' or self.client_board[rand_y][rand_x] == 'D':
             key = self.client_board[rand_y][rand_x]
-            if self.client_tokens[key] == 1:
-                self.client_ship_count -= 1
             self.client_tokens[key] -= 1
             self.client_board[rand_y][rand_x] = 'X'
             print('The server hit one of your ships!')
@@ -34,12 +30,11 @@ class BattleshipServer(BaseHTTPRequestHandler):
         elif self.client_board[rand_y][rand_x] == '_' or self.client_board[rand_y][rand_x] == 'X':
             self.client_board[rand_y][rand_x] = 'X'
             print('The server missed!')
-        self.check_victory(self.client_ship_count, 'server')
         self.save_to_file('client', self.client_board)
-        game_over = self.check_victory(self.client_ship_count, 'server')
+        game_over = self.check_victory(self.client_tokens, 'server')
         if game_over[0]:
             print(game_over[1])
-            return
+            system.exit(0)
 
     def get_server_file_content(self):
         file = open('opponent_board.txt', 'r')
@@ -90,9 +85,13 @@ class BattleshipServer(BaseHTTPRequestHandler):
             line = ''
         file_append.close()
 
-    def check_victory(self, ship_count, player):
+    def check_victory(self, ship_tokens, player):
         result = [False, '']
-        if ship_count == 0:
+        ship_count = 0
+        for i in ship_tokens:
+            if ship_tokens[i] == 0:
+                ship_count += 1
+        if ship_count == 5:
             result[0] = True
             result[1] = "The " + player + " has won the game!"
             return result
@@ -187,7 +186,6 @@ class BattleshipServer(BaseHTTPRequestHandler):
             key = self.server_board[y_coord][x_coord]
             if self.server_tokens[key] == 1:
                 sink = '&sink=' + key
-                self.server_ship_count -= 1
             self.server_tokens[key] -= 1
             self.server_board[y_coord][x_coord] = 'X'
             status = 200
@@ -213,13 +211,13 @@ class BattleshipServer(BaseHTTPRequestHandler):
         self.send_http_response(status, headers, message)
         self.server_turn()
         self.save_to_file('server', self.server_board)
-        game_over = self.check_victory(self.server_ship_count, 'client')
+        game_over = self.check_victory(self.server_tokens, 'client')
         if game_over[0]:
             status = 200
             headers.append('URL')
             headers.append('127.0.0.1:5000')
             self.send_http_response(status, headers, game_over[1])
-            return
+            system.exit(0)
         return
 
 BattleshipServer.run(system.argv[1], system.argv[2])
