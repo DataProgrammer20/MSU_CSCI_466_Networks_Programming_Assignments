@@ -17,7 +17,24 @@ class BattleshipServer(BaseHTTPRequestHandler):
     client_board = []
     server_board = []
 
-    # def server_turn(self):
+    def server_turn(self):
+        print('Server is taking a turn...')
+        game_over = self.check_victory(self.client_ship_count, 'server')
+        if game_over[0]:
+            print(game_over[1])
+            return
+        rand_y = random.randint(1, 10)
+        rand_x = random.randint(1, 10)
+        if self.client_board[rand_y][rand_x] == 'C' or self.client_board[rand_y][rand_x] == 'B' or self.client_board[rand_y][rand_x] == 'R' or self.client_board[rand_y][rand_x] == 'S' or self.client_board[rand_y][rand_x] == 'D':
+            key = self.client_board[rand_y][rand_x]
+            if self.client_tokens[key] == 1:
+                self.client_ship_count -= 1
+            self.client_tokens[key] -= 1
+            self.client_board[rand_y][rand_x] = 'X'
+
+        elif self.client_board[rand_y][rand_x] == '_':
+            self.client_board[rand_y][rand_x] = 'X'
+        self.check_victory(self.client_ship_count, 'server')
 
     def get_server_file_content(self):
         file = open('opponent_board.txt', 'r')
@@ -208,6 +225,7 @@ class BattleshipServer(BaseHTTPRequestHandler):
             message = 'Unknown command'
 
         self.send_http_response(status, headers, message)
+        self.server_turn()
         self.save_to_file('server', self.server_board)
         return
 
