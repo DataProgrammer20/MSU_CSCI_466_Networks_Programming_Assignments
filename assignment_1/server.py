@@ -10,14 +10,12 @@ class BattleshipServer(BaseHTTPRequestHandler):
     server_board_file = 'opponent_board.txt'
     server_victory = False
     client_victory = True
-    server_tokens = {'C': 5, 'B': 4, 'R': 3, 'S': 3, 'D': 2}
+    server_tokens = {'C': 0, 'B': 0, 'R': 0, 'S': 1, 'D': 0}
     client_tokens = {'C': 5, 'B': 4, 'R': 3, 'S': 3, 'D': 2}
     client_board = []
     server_board = []
 
     def server_turn(self):
-        print(self.server_tokens)
-        print(self.client_tokens)
         print('Server is taking a turn...')
         rand_y = random.randint(1, 9)
         rand_x = random.randint(1, 9)
@@ -25,16 +23,16 @@ class BattleshipServer(BaseHTTPRequestHandler):
             key = self.client_board[rand_y][rand_x]
             self.client_tokens[key] -= 1
             self.client_board[rand_y][rand_x] = 'X'
+            game_over = self.check_victory(self.client_tokens, 'server')
+            if game_over[0]:
+                print(game_over[1])
+                self.save_to_file('client', self.client_board)
+                return
             print('The server hit one of your ships!')
-
         elif self.client_board[rand_y][rand_x] == '_' or self.client_board[rand_y][rand_x] == 'X':
             self.client_board[rand_y][rand_x] = 'X'
             print('The server missed!')
         self.save_to_file('client', self.client_board)
-        game_over = self.check_victory(self.client_tokens, 'server')
-        if game_over[0]:
-            print(game_over[1])
-            system.exit(0)
 
     def get_server_file_content(self):
         file = open('opponent_board.txt', 'r')
@@ -97,11 +95,11 @@ class BattleshipServer(BaseHTTPRequestHandler):
             return result
         return result
 
-    def send_http_response(self, status, headers, message):
+    def send_http_response(self, status=0, headers=['', ''], message=''):
         self.send_response(status)
         self.send_header(headers[0], headers[1])
         self.end_headers()
-        self.wfile.write(bytes(message, "utf8"))
+        self.wfile.write(bytes(message, 'utf8'))
 
     def parse_board(self, type):
         board_line = []
@@ -151,7 +149,6 @@ class BattleshipServer(BaseHTTPRequestHandler):
             self.send_header('Content-type', 'text/html')
             self.end_headers()
             self.wfile.write(bytes(DOM, 'utf8'))
-            return
         elif self.path == '/opponent_board.html':
             file_content = self.get_server_file_content()
             DOM = '<div style="margin: 100px auto; text-align: left; width: 100px;">' + file_content + '</div>'
@@ -159,14 +156,13 @@ class BattleshipServer(BaseHTTPRequestHandler):
             self.send_header('Content-type', 'text/html')
             self.end_headers()
             self.wfile.write(bytes(DOM, 'utf8'))
-            return
         else:
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
             message = "Welcome to the Battleship server!"
             self.wfile.write(bytes(message, 'utf8'))
-            return
+        return
 
     def do_POST(self):
         status = 0
@@ -190,6 +186,12 @@ class BattleshipServer(BaseHTTPRequestHandler):
             self.server_board[y_coord][x_coord] = 'X'
             status = 200
             headers.append('URL')
+            game_over = self.check_victory(self.server_tokens, 'client')
+            if game_over[0]:
+                headers.append('127.0.0.1:5000?hit=1' + sink + '&victory=1')
+                self.send_http_response(status, headers, game_over[1])
+                self.save_to_file('server', self.server_board)
+                return
             headers.append('127.0.0.1:5000?hit=1' + sink)
             message = 'You hit a ship!'
         elif self.server_board[y_coord][x_coord] == '_':
@@ -211,13 +213,6 @@ class BattleshipServer(BaseHTTPRequestHandler):
         self.send_http_response(status, headers, message)
         self.server_turn()
         self.save_to_file('server', self.server_board)
-        game_over = self.check_victory(self.server_tokens, 'client')
-        if game_over[0]:
-            status = 200
-            headers.append('URL')
-            headers.append('127.0.0.1:5000')
-            self.send_http_response(status, headers, game_over[1])
-            system.exit(0)
         return
 
 BattleshipServer.run(system.argv[1], system.argv[2])
