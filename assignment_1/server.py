@@ -18,23 +18,28 @@ class BattleshipServer(BaseHTTPRequestHandler):
     server_board = []
 
     def server_turn(self):
+        print(self.server_tokens)
+        print(self.server_ship_count)
         print('Server is taking a turn...')
-        game_over = self.check_victory(self.client_ship_count, 'server')
-        if game_over[0]:
-            print(game_over[1])
-            return
-        rand_y = random.randint(1, 10)
-        rand_x = random.randint(1, 10)
+        rand_y = random.randint(1, 9)
+        rand_x = random.randint(1, 9)
         if self.client_board[rand_y][rand_x] == 'C' or self.client_board[rand_y][rand_x] == 'B' or self.client_board[rand_y][rand_x] == 'R' or self.client_board[rand_y][rand_x] == 'S' or self.client_board[rand_y][rand_x] == 'D':
             key = self.client_board[rand_y][rand_x]
             if self.client_tokens[key] == 1:
                 self.client_ship_count -= 1
             self.client_tokens[key] -= 1
             self.client_board[rand_y][rand_x] = 'X'
+            print('The server hit one of your ships!')
 
-        elif self.client_board[rand_y][rand_x] == '_':
+        elif self.client_board[rand_y][rand_x] == '_' or self.client_board[rand_y][rand_x] == 'X':
             self.client_board[rand_y][rand_x] = 'X'
+            print('The server missed!')
         self.check_victory(self.client_ship_count, 'server')
+        self.save_to_file('client', self.client_board)
+        game_over = self.check_victory(self.client_ship_count, 'server')
+        if game_over[0]:
+            print(game_over[1])
+            return
 
     def get_server_file_content(self):
         file = open('opponent_board.txt', 'r')
@@ -148,7 +153,6 @@ class BattleshipServer(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(bytes(DOM, 'utf8'))
             return
-
         elif self.path == '/opponent_board.html':
             file_content = self.get_server_file_content()
             DOM = '<div style="margin: 100px auto; text-align: left; width: 100px;">' + file_content + '</div>'
@@ -157,15 +161,11 @@ class BattleshipServer(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(bytes(DOM, 'utf8'))
             return
-
         else:
             self.send_response(200)
-            # Send headers
             self.send_header('Content-type', 'text/html')
             self.end_headers()
-            # Send message back to client
             message = "Welcome to the Battleship server!"
-            # Write content as utf-8 data
             self.wfile.write(bytes(message, 'utf8'))
             return
 
@@ -178,21 +178,11 @@ class BattleshipServer(BaseHTTPRequestHandler):
         parsed_url = urlparse.urlparse(url)
         y_coord = int(urlparse.parse_qs(parsed_url.query)['y'][0])
         x_coord = int(urlparse.parse_qs(parsed_url.query)['x'][0])
-        game_over = self.check_victory(self.server_ship_count, 'client')
-
-        if game_over[0]:
-            status = 200
-            headers.append('URL')
-            headers.append('127.0.0.1:5000')
-            self.send_http_response(status, headers, game_over[1])
-            return
-
         if y_coord > 9 or y_coord < 0 or x_coord > 9 or x_coord < 0:
             status = 404
             headers.append('URL')
             headers.append('127.0.0.1:5000')
             message = 'Values out of range!'
-
         elif self.server_board[y_coord][x_coord] == 'C' or self.server_board[y_coord][x_coord] == 'B' or self.server_board[y_coord][x_coord] == 'R' or self.server_board[y_coord][x_coord] == 'S' or self.server_board[y_coord][x_coord] == 'D':
             key = self.server_board[y_coord][x_coord]
             if self.server_tokens[key] == 1:
@@ -204,29 +194,32 @@ class BattleshipServer(BaseHTTPRequestHandler):
             headers.append('URL')
             headers.append('127.0.0.1:5000?hit=1' + sink)
             message = 'You hit a ship!'
-
         elif self.server_board[y_coord][x_coord] == '_':
             self.server_board[y_coord][x_coord] = 'X'
             status = 200
             headers.append('URL')
             headers.append('127.0.0.1:5000?hit=0')
             message = 'You missed!'
-
         elif self.server_board[y_coord][x_coord] == 'X':
             status = 410
             headers.append('URL')
             headers.append('127.0.0.1:5000')
             message = 'You already hit that location!'
-
         else:
             status = 400
             headers.append('URL')
             headers.append('127.0.0.1:5000')
             message = 'Unknown command'
-
         self.send_http_response(status, headers, message)
         self.server_turn()
         self.save_to_file('server', self.server_board)
+        game_over = self.check_victory(self.server_ship_count, 'client')
+        if game_over[0]:
+            status = 200
+            headers.append('URL')
+            headers.append('127.0.0.1:5000')
+            self.send_http_response(status, headers, game_over[1])
+            return
         return
 
 BattleshipServer.run(system.argv[1], system.argv[2])
