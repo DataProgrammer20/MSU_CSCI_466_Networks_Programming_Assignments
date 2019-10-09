@@ -92,36 +92,36 @@ class RDT:
 
     # RDT 2.1 sending function
     def rdt_2_1_send(self, msg_S):
-        # First, create a new Packet and send it over the network
+        # First, create a new packet and send it over the network
         packet = Packet(self.seq_num, msg_S)
         self.network.udt_send(packet.get_byte_S())
+        # Continue to receive bytes over the network
         while True:
-            # Continue to receive bytes over the network
             packet_bytes = self.network.udt_receive()
             self.byte_buffer += packet_bytes
-            # Check if we have received enough Packet bytes
+            # Check if we have received enough packet bytes
             if len(self.byte_buffer) >= packet.length_S_length:
-                # Extract the length of the Packet
+                # Extract the length of the packet
                 length = int(self.byte_buffer[0:packet.length_S_length])
-                # Check if we have enough bytes to read the whole Packet
+                # Check if we have enough bytes to read the whole packet
                 if len(self.byte_buffer) >= length:
-                    # If so, check if the Packet is corrupted
+                    # If so, check if the packet is corrupted
                     if Packet.corrupt(self.byte_buffer[0:length]):
-                        # Empty the byte buffer, resend Packet bytes
+                        # Empty the byte buffer, resend packet bytes
                         self.byte_buffer = []
                         self.network.udt_send(packet.get_byte_S())
                     else:
-                        # Else, Packet is not corrupt
+                        # Else, packet is not corrupt
                         received_packet = packet.from_byte_S(self.byte_buffer[0:length])
                         # Empty byte buffer
                         self.byte_buffer = []
-                        # Check if Packet is ACK
+                        # Check if packet is ACK
                         if received_packet.msg_S == 'ACK' and received_packet.seq_num >= self.seq_num:
                             # If so, increment the sequence number
                             self.seq_num += 1
                             return
                         else:
-                            # Else, resend the Packet
+                            # Else, resend the packet
                             self.network.udt_send(packet.get_byte_S())
 
     # RDT 2.1 receiving function
