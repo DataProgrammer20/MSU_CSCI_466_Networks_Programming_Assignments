@@ -90,11 +90,17 @@ class RDT:
             self.byte_buffer = self.byte_buffer[length:]
             # if this was the last packet, will return on the next iteration
 
+    # RDT 2.1 sending function
     def rdt_2_1_send(self, msg_S):
-        pass
+        packet = Packet(self.seq_num, msg_S)
+        self.network.udt_send(packet.get_byte_S())
 
+    # RDT 2.1 sending function
     def rdt_2_1_receive(self):
         pass
+
+
+
 
     def rdt_3_0_send(self, msg_S):
         pass
