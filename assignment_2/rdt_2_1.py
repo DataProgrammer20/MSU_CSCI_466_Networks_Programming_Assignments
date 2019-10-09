@@ -2,7 +2,7 @@ import argparse
 import hashlib
 from time import sleep
 
-from assignment_2 import network
+from assignment_2 import network_2_1
 
 
 class Packet:
@@ -60,7 +60,7 @@ class RDT:
     byte_buffer = ''
 
     def __init__(self, role_S, server_S, port):
-        self.network = network.NetworkLayer(role_S, server_S, port)
+        self.network = network_2_1.NetworkLayer(role_S, server_S, port)
 
     def disconnect(self):
         self.network.disconnect()
@@ -94,8 +94,17 @@ class RDT:
     def rdt_2_1_send(self, msg_S):
         packet = Packet(self.seq_num, msg_S)
         self.network.udt_send(packet.get_byte_S())
+        packet_bytes = self.network.udt_receive()
+        self.byte_buffer += packet_bytes
+        while True:
+            packet_bytes = self.network.udt_receive()
+            self.byte_buffer += packet_bytes
+            if len(self.byte_buffer) >= packet.length_S_length:
+                byte_length = int(self.byte_buffer[:packet.length_S_length])
 
-    # RDT 2.1 sending function
+
+
+    # RDT 2.1 receiving function
     def rdt_2_1_receive(self):
         pass
 

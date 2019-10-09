@@ -1,7 +1,7 @@
 import argparse
 import time
 
-from assignment_2 import rdt
+from assignment_2 import rdt_2_1
 
 
 def makePigLatin(word):
@@ -35,7 +35,7 @@ if __name__ == '__main__':
     timeout = 5  # close connection if no new data within 5 seconds
     time_of_last_data = time.time()
 
-    rdt = rdt.RDT('server', None, args.port)
+    rdt = rdt_2_1.RDT('server', None, args.port)
     while True:
         # try to receiver message before timeout
         msg_S = rdt.rdt_1_0_receive()

@@ -1,7 +1,7 @@
 import argparse
 import time
 
-from assignment_2 import rdt
+from assignment_2 import rdt_2_1
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Quotation client talking to a Pig Latin server.')
@@ -19,7 +19,7 @@ if __name__ == '__main__':
     timeout = 2  # send the next message if no response
     time_of_last_data = time.time()
 
-    rdt = rdt.RDT('client', args.server, args.port)
+    rdt = rdt_2_1.RDT('client', args.server, args.port)
     for msg_S in msg_L:
         print('Converting: ' + msg_S)
         rdt.rdt_1_0_send(msg_S)
