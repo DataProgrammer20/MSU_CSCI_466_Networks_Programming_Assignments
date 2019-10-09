@@ -94,15 +94,11 @@ class RDT:
     def rdt_2_1_send(self, msg_S):
         packet = Packet(self.seq_num, msg_S)
         self.network.udt_send(packet.get_byte_S())
-        packet_bytes = self.network.udt_receive()
-        self.byte_buffer += packet_bytes
         while True:
             packet_bytes = self.network.udt_receive()
             self.byte_buffer += packet_bytes
             if len(self.byte_buffer) >= packet.length_S_length:
                 byte_length = int(self.byte_buffer[:packet.length_S_length])
-
-
 
     # RDT 2.1 receiving function
     def rdt_2_1_receive(self):
