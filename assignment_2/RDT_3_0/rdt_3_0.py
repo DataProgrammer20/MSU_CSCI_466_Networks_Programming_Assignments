@@ -1,6 +1,6 @@
 import argparse
 import hashlib
-from time import sleep
+from time import sleep, time
 
 from assignment_2.RDT_3_0 import network_3_0
 
@@ -97,7 +97,40 @@ class RDT:
         pass
 
     def rdt_3_0_send(self, msg_S):
-        pass
+        packet = Packet(self.seq_num, msg_S)
+        self.network.udt_send(packet)
+        while True:
+            # Create time-out timer
+            timer = time() + 2.0  # 0.05
+            while time() < timer:
+                packet_bytes = self.network.udt_receive()
+                self.byte_buffer += packet_bytes
+                # Check if we have received enough packet bytes
+                if len(self.byte_buffer) >= packet.length_S_length:
+                    # Extract the length of the packet
+                    length = len(self.byte_buffer[0:packet.length_S_length])
+                    # CHeck if we have enough bytes to read the whole packet
+                    if len(self.byte_buffer) >= length:
+                        # If so, check if the packet is corrupted
+                        if Packet.corrupt(self.byte_buffer[0:length]):
+                            # Remove bytes from corrupted packet
+                            self.byte_buffer = self.byte_buffer[length:]
+                            # Break, and check against the time-out
+                            break
+                        else:
+                            # Else, packet is not corrupt
+                            received_packet = packet.from_byte_S(self.byte_buffer[0:length])
+                            # Remove current bytes from buffer
+                            self.byte_buffer = self.byte_buffer[length:]
+                            # Check if packet is ACK
+                            if received_packet.msg_S == 'ACK' and received_packet.seq_num >= self.seq_num:
+                                self.seq_num += 1
+                                return
+                            else:
+                                # If there is an issue, break, wait for the time-out
+                                break
+            # By the end of time-out, send packet bytes
+            self.network.udt_send(packet.get_byte_S())
 
     def rdt_3_0_receive(self):
         pass
