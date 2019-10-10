@@ -4,7 +4,7 @@ import socket
 import threading
 from time import sleep
 
-from assignment_2 import rdt_2_1
+from assignment_2.RDT_2_1 import rdt_2_1
 
 
 # Provides an abstraction for the network layer
