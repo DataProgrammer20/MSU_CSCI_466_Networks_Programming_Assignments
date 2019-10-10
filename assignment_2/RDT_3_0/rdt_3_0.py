@@ -101,7 +101,7 @@ class RDT:
         self.network.udt_send(packet)
         while True:
             # Create time-out timer
-            timer = time() + 2.0  # 0.05
+            timer = time() + 2.0
             while time() < timer:
                 packet_bytes = self.network.udt_receive()
                 self.byte_buffer += packet_bytes
@@ -109,7 +109,7 @@ class RDT:
                 if len(self.byte_buffer) >= packet.length_S_length:
                     # Extract the length of the packet
                     length = len(self.byte_buffer[0:packet.length_S_length])
-                    # CHeck if we have enough bytes to read the whole packet
+                    # Check if we have enough bytes to read the whole packet
                     if len(self.byte_buffer) >= length:
                         # If so, check if the packet is corrupted
                         if Packet.corrupt(self.byte_buffer[0:length]):
