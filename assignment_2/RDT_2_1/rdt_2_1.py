@@ -99,17 +99,21 @@ class RDT:
         self.network.udt_send(packet.get_byte_S())
         # Continue to receive bytes over the network
 
+        packet_bytes = self.network.udt_receive()
+        self.byte_buffer += packet_bytes
 
         # Infinite loop is ooccuring here. byte_buffer is not receiving packets
 
         while True:
-            print("no!")
+
+            # This is the infinite loop location
+
             packet_bytes = self.network.udt_receive()
             self.byte_buffer += packet_bytes
             # Check if we have received enough packet bytes
             if len(self.byte_buffer) >= packet.length_S_length:
                 # Extract the length of the packet
-                length = int(self.byte_buffer[0:packet.length_S_length])
+                length = int(self.byte_buffer[:packet.length_S_length])
                 # Check if we have enough bytes to read the whole packet
                 if len(self.byte_buffer) >= length:
                     # If so, check if the packet is corrupted
@@ -137,7 +141,6 @@ class RDT:
         packet_bytes = self.network.udt_receive()
         self.byte_buffer += packet_bytes
         while True:
-            print("why?")
             # Check if we have received enough bytes
             if len(self.byte_buffer) < Packet.length_S_length:
                 # Not enough bytes to read packet length
@@ -159,6 +162,7 @@ class RDT:
                 if packet.seq_num == self.seq_num_received:
                     # If the packet is not corrupted and has the correct sequence number send ACK
                     ret_S = packet.msg_S if (ret_S is None) else ret_S + packet.msg_S
+                    self.seq_num_received += 1
                     ack = Packet(self.seq_num, 'ACK')
                     self.network.udt_send(ack.get_byte_S())
                     # Set timer, wait for more packets from sender
@@ -192,7 +196,7 @@ class RDT:
                         else:
                             received_packet = Packet.from_byte_S(receiver_byte_buffer[0:length])
                             # Check if packet sequence number is a duplicate, indicating duplicate packet
-                            if received_packet.seq_num == self.seq_num - 1:
+                            if received_packet.seq_num == self.seq_num_received - 1:
                                 duplicate = True
                                 # Increment timer
                                 timer += 2.0
