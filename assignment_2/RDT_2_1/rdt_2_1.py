@@ -106,7 +106,7 @@ class RDT:
         # Infinite loop is ooccuring here. byte_buffer is not receiving packets
 
         while True:
-
+            print("Help me! I'm stuck!!!!")
             # This is the infinite loop location
 
             packet_bytes = self.network.udt_receive()
