@@ -1,6 +1,7 @@
 import argparse
 import hashlib
 from time import sleep
+from time import time
 
 from assignment_2.RDT_2_1 import network_2_1
 
@@ -56,6 +57,7 @@ class Packet:
 class RDT:
     # latest sequence number used in a packet
     seq_num = 1
+    seq_num_received = 1
     # buffer of bytes read from network
     byte_buffer = ''
 
@@ -124,8 +126,82 @@ class RDT:
                             # Else, resend the packet bytes
                             self.network.udt_send(packet.get_byte_S())
 
+    # RDT_2_1 receiving function
     def rdt_2_1_receive(self):
-        pass
+        ret_S = None
+        packet_bytes = self.network.udt_receive()
+        self.byte_buffer += packet_bytes
+        while True:
+            # Check if we have received enough bytes
+            if len(self.byte_buffer) < Packet.length_S_length:
+                # Not enough bytes to read packet length
+                return ret_S
+            # Extract length of packet
+            length = int(self.byte_buffer[:Packet.length_S_length])
+            if len(self.byte_buffer) < length:
+                # Not enough bytes to read whole packet
+                return ret_S
+            # check for packet corruption?
+            if Packet.corrupt(self.byte_buffer[0:length]):
+                # The packet is corrupt, so send NAK
+                nak = Packet(self.seq_num_received, 'NAK')
+                self.network.udt_send(nak)
+                self.byte_buffer = self.byte_buffer[length:]
+            else:
+                # Create packet from buffer content
+                packet = Packet.from_byte_S(self.byte_buffer[0:length])
+                if packet.seq_num == self.seq_num_received:
+                    # If the packet is not corrupted and has the correct sequence number send ACK
+                    ret_S = packet.msg_S if (ret_S is None) else ret_S + packet.msg_S
+                    ack = Packet(self.seq_num, 'ACK')
+                    self.network.udt_send(ack)
+                    # Set timer, wait for more packets from sender
+                    timer = time() + 2.0
+                    # Create new receiver byte buffer
+                    receiver_byte_buffer = ''
+                    while time() < timer:
+                        # Duplicate packet flag
+                        duplicate = False
+                        receiver_bytes = self.network.udt_receive()
+                        receiver_byte_buffer += receiver_bytes
+                        # Now we just do what we have already done
+                        if len(receiver_byte_buffer) < Packet.length_S_length:
+                            # Continue if we have not received enough bytes
+                            continue
+                        length = int(receiver_byte_buffer[:Packet.length_S_length])
+                        if len(receiver_byte_buffer) < length:
+                            # Continue if we do not have enough bytes to read the packet
+                            continue
+                        if Packet.corrupt(receiver_byte_buffer[0:receiver_bytes]):
+                            # Send NAK, clear buffer
+                            nak = Packet(self.seq_num_received, 'NAK')
+                            self.network.udt_send(nak)
+                            receiver_byte_buffer = ''
+                            # Check if it was a duplicate
+                            if duplicate:
+                                # Increment timer
+                                timer += 2.0
+                            continue
+                        # Else, packet is not corrupt
+                        else:
+                            received_packet = Packet.from_byte_S(receiver_byte_buffer[0:length])
+                            # Check if packet sequence number is a duplicate, indicating duplicate packet
+                            if received_packet.seq_num == self.seq_num - 1:
+                                duplicate = True
+                                # Increment timer
+                                timer += 2.0
+                                # ACK the duplicate packet again
+                                self.network.udt_send(ack.get_byte_S())
+                                # Clear receiver byte buffer
+                                receiver_byte_buffer = ''
+                            else:
+                                # Else, send a NAK
+                                nak = Packet(self.seq_num_received, 'NAK')
+                                self.network.udt_send(nak.get_byte_S())
+                                # Break from while loop
+                                break
+            # Finally, remove packet bytes from buffer
+            self.byte_buffer = self.byte_buffer[length:]
 
     def rdt_3_0_send(self, msg_S):
         pass
