@@ -101,7 +101,7 @@ class RDT:
         # Continue to receive bytes over the network
         packet_bytes = self.network.udt_receive()
         self.byte_buffer += packet_bytes
-        # Infinite loop is ooccuring here. byte_buffer is not receiving packets
+        # Infinite loop is occurring here. byte_buffer is not receiving packets
         while True:
             # This is the infinite loop location
             packet_bytes = self.network.udt_receive()
@@ -162,7 +162,7 @@ class RDT:
                     ack = Packet(self.seq_num, 'ACK')
                     self.network.udt_send(ack.get_byte_S())
                     # Set timer, wait for more packets from sender
-                    timer = time() + 2.0
+                    timer = time() + 0.5
                     # Create new receiver byte buffer
                     receiver_byte_buffer = ''
                     while time() < timer:
@@ -184,7 +184,7 @@ class RDT:
                             # Check if it was a duplicate
                             if self.duplicate:
                                 # Increment timer
-                                timer += 2.0
+                                timer += 0.5
                             continue
                         # Else, packet is not corrupt
                         else:
@@ -193,7 +193,7 @@ class RDT:
                             if received_packet.seq_num == self.seq_num_received - 1:
                                 self.duplicate = True
                                 # Increment timer
-                                timer += 2.0
+                                timer += 1.0
                                 # ACK the duplicate packet again
                                 self.network.udt_send(ack.get_byte_S())
                                 # Clear receiver byte buffer

@@ -103,7 +103,7 @@ class RDT:
         self.network.udt_send(packet.get_byte_S())
         while True:
             # Create time-out timer
-            timer = time() + 2.0
+            timer = time() + 0.5
             while time() < timer:
                 packet_bytes = self.network.udt_receive()
                 self.byte_buffer += packet_bytes
@@ -165,7 +165,7 @@ class RDT:
                     ack = Packet(self.seq_num, 'ACK')
                     self.network.udt_send(ack.get_byte_S())
                     # Set timer, wait for more packets from sender
-                    timer = time() + 2.0
+                    timer = time() + 0.5
                     # Create new receiver byte buffer
                     receiver_byte_buffer = ''
                     while time() < timer:
@@ -189,7 +189,7 @@ class RDT:
                             # Check if it was a duplicate
                             if self.duplicate:
                                 # Increment timer
-                                timer += 2.0
+                                timer += 0.5
                             continue
                         # Else, packet is not corrupt
                         else:
@@ -198,7 +198,7 @@ class RDT:
                             if received_packet.seq_num <= self.seq_num - 1:
                                 self.duplicate = True
                                 # Increment timer
-                                timer += 2.0
+                                timer += 0.5
                                 # create new packet
                                 receiver_packet = Packet(received_packet.seq_num, 'ACK')
                                 # ACK the duplicate packet again
