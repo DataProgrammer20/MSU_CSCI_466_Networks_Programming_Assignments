@@ -60,6 +60,7 @@ class RDT:
     seq_num_received = 1
     # buffer of bytes read from network
     byte_buffer = ''
+    duplicate = False
 
     def __init__(self, role_S, server_S, port):
         self.network = network_2_1.NetworkLayer(role_S, server_S, port)
@@ -98,16 +99,11 @@ class RDT:
         packet = Packet(self.seq_num, msg_S)
         self.network.udt_send(packet.get_byte_S())
         # Continue to receive bytes over the network
-
         packet_bytes = self.network.udt_receive()
         self.byte_buffer += packet_bytes
-
         # Infinite loop is ooccuring here. byte_buffer is not receiving packets
-
         while True:
-
             # This is the infinite loop location
-
             packet_bytes = self.network.udt_receive()
             self.byte_buffer += packet_bytes
             # Check if we have received enough packet bytes
@@ -170,8 +166,6 @@ class RDT:
                     # Create new receiver byte buffer
                     receiver_byte_buffer = ''
                     while time() < timer:
-                        # Duplicate packet flag
-                        duplicate = False
                         receiver_bytes = self.network.udt_receive()
                         receiver_byte_buffer += receiver_bytes
                         # Now we just do what we have already done
@@ -188,7 +182,7 @@ class RDT:
                             self.network.udt_send(nak.get_byte_S())
                             receiver_byte_buffer = ''
                             # Check if it was a duplicate
-                            if duplicate:
+                            if self.duplicate:
                                 # Increment timer
                                 timer += 2.0
                             continue
@@ -197,7 +191,7 @@ class RDT:
                             received_packet = Packet.from_byte_S(receiver_byte_buffer[0:length])
                             # Check if packet sequence number is a duplicate, indicating duplicate packet
                             if received_packet.seq_num == self.seq_num_received - 1:
-                                duplicate = True
+                                self.duplicate = True
                                 # Increment timer
                                 timer += 2.0
                                 # ACK the duplicate packet again
