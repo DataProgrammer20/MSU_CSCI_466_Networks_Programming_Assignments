@@ -193,7 +193,7 @@ class RDT:
                             if received_packet.seq_num == self.seq_num_received - 1:
                                 self.duplicate = True
                                 # Increment timer
-                                timer += 1.0
+                                timer += 0.5
                                 # ACK the duplicate packet again
                                 self.network.udt_send(ack.get_byte_S())
                                 # Clear receiver byte buffer
