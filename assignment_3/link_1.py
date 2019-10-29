@@ -1,7 +1,7 @@
-'''
+"""
 Created on Oct 12, 2016
 @author: mwittie
-'''
+"""
 
 import queue
 import threading
@@ -10,9 +10,9 @@ import threading
 # An abstraction of a link between router interfaces
 class Link:
     # creates a link between two objects by looking up and linking node interfaces.
-    # @param from_node: node from which data will be transfered
+    # @param from_node: node from which data will be transferred
     # @param from_intf_num: number of the interface on that node
-    # @param to_node: node to which data will be transfered
+    # @param to_node: node to which data will be transferred
     # @param to_intf_num: number of the interface on that node
     # @param mtu: link maximum transmission unit
     def __init__(self, from_node, from_intf_num, to_node, to_intf_num, mtu):
