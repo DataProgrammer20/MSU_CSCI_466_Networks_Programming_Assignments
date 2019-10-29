@@ -76,10 +76,33 @@ class Host:
     # create a packet and enqueue for transmission
     # @param dst_addr: destination address for the packet
     # @param data_S: data being transmitted to the network layer
-    def udt_send(self, dst_addr, data_S):
-        p = NetworkPacket(dst_addr, data_S)
-        self.out_intf_L[0].put(p.to_byte_S())  # send packets always enqueued successfully
-        print('%s: sending packet "%s" on the out interface with mtu=%d' % (self, p, self.out_intf_L[0].mtu))
+    def udt_send(self, dst_addr, data_S, limit):
+        # Check if the length of the data is greater than the limit
+        if len(data_S) > limit:
+            # If the length of the data is greater, continue
+            f_char = 0
+            l_char = limit
+            while True:
+                # If the l_char is greater than the length of the data_S, create the network packet
+                # and put it into the out-bound interface.
+                if l_char > len(data_S):
+                    packet = NetworkPacket(dst_addr, data_S[f_char:])
+                    self.out_intf_L[0].put(packet.to_byte_S())
+                    print('%s: sending packet "%s" on the out interface with mtu=%d' % (self, packet, self.out_intf_L[0].mtu))
+                    break
+                # Else, segment the data into a new network packet, and put it into the out-bound interface
+                else:
+                    packet = NetworkPacket(dst_addr, data_S[f_char:l_char])
+                    self.out_intf_L[0].put(packet.to_byte_S())
+                # Increment both f_char and l_char with the limit
+                f_char += limit
+                l_char += limit
+                print('%s: sending packet "%s" on the out interface with mtu=%d' % (self, packet, self.out_intf_L[0].mtu))
+        # Else, we can create the network packet and put it into the out-bound interface
+        else:
+            packet = NetworkPacket(dst_addr, data_S)
+            self.out_intf_L[0].put(packet.to_byte_S())
+            print('%s: sending packet "%s" on the out interface with mtu=%d' % (self, packet, self.out_intf_L[0].mtu))
 
     # receive packet from the network layer
     def udt_receive(self):
