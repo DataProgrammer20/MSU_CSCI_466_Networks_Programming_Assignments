@@ -48,8 +48,7 @@ if __name__ == '__main__':
         t.start()
 
     # create some send events
-    for i in range(3):
-        client.udt_send(2, 'Sample data %d' % i)
+    client.udt_send(2, 'Hello! My name is Bob. Bob is very friendly, so you should communicate with Bob and say hello!')
 
     # give the network sufficient time to transfer all packets before quitting
     sleep(simulation_time)
