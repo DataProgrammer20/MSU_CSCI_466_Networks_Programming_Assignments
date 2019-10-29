@@ -3,11 +3,11 @@ Created on Oct 12, 2016
 @author: mwittie
 """
 # import network
-from assignment_3.network import Router
-from assignment_3.network import Host
+from assignment_3.network_1 import Router
+from assignment_3.network_1 import Host
 # import link
-from assignment_3.link import LinkLayer
-from assignment_3.link import Link
+from assignment_3.link_1 import LinkLayer
+from assignment_3.link_1 import Link
 import threading
 from time import sleep
 
