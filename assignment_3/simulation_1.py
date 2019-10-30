@@ -3,11 +3,11 @@ Created on Oct 12, 2016
 @author: mwittie
 """
 # import network
-from assignment_3.network_1 import Router
-from assignment_3.network_1 import Host
+from network_1 import Router
+from network_1 import Host
 # import link
-from assignment_3.link_1 import LinkLayer
-from assignment_3.link_1 import Link
+from link_1 import LinkLayer
+from link_1 import Link
 import threading
 from time import sleep
 
@@ -50,6 +50,8 @@ if __name__ == '__main__':
     # create some send events
     for i in range(3):
         client.udt_send(2, 'Sample data %d' % i)
+
+
 
     # give the network sufficient time to transfer all packets before quitting
     sleep(simulation_time)
