@@ -62,7 +62,10 @@ class NetworkPacket:
 
     # convert packet to a byte string for transmission over links
     def to_byte_S(self):
-        byte_S = str(self.dst_addr).zfill(self.dst_addr_S_length)
+        byte_S = str(self.frg_ident).zfill(self.frg_ident_S_length)
+        byte_S += str(self.frg_flag).zfill(self.frg_flag_S_length - self.frg_ident_S_length)
+        byte_S += str(self.frg_offset).zfill(self.frg_offset_S_length - self.frg_flag_S_length)
+        byte_S += str(self.dst_addr).zfill(self.dst_addr_S_length - self.frg_offset_S_length)
         byte_S += self.data_S
         return byte_S
 
