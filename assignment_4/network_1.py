@@ -161,7 +161,7 @@ class Router:
                         lowest_interface = interface
                 self.send_routes(lowest_interface)
 
-    # Print routing table
+    # Print routing table, table does not print properly. Probably because of characters...
     def print_routes(self):
         # Printing routes in 2D table
         router_list = []
@@ -169,27 +169,28 @@ class Router:
             for router in list(self.rt_tbl_D[dest]):
                 if router not in router_list:
                     router_list.append(router)
-        print("╒══════", end='')
+        print("╒══════", end="")
         for _ in list(self.rt_tbl_D):
-            print("╒══════", end='')
+            print("╤══════", end="")
         print("╕")
-        print("| ", self.name, " ", end='')
+        print("│ ", self.name, "  ", end="")
         for dest in sorted(self.rt_tbl_D):
-            print("| ", dest, " ", end='')
-        print("|")
+            print("│  ", dest, " ", end="")
+
+        print("│")
         for router in router_list:
-            print("╞══════", end='')
+            print("╞══════", end="")
             for _ in list(self.rt_tbl_D):
-                print("╪══════", end='')
+                print("╪══════", end="")
             print("╡")
-            print("| ", router, " ", end='')
+            print("│  ", router, " ", end="")
             for dest in sorted(self.rt_tbl_D):
                 cost = int(self.rt_tbl_D[dest][router])
-                print("| ", cost, " ", end='')
-            print("|")
+                print("│  ", cost, " ", end="")
+            print("│  ")
         print("╘══════", end='')
         for _ in list(self.rt_tbl_D):
-            print("╧══════", end='')
+            print("╧══════", end="")
         print("╛")
 
     # called when printing the object
