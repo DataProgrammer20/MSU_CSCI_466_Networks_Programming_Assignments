@@ -131,15 +131,19 @@ class Router:
     # @param name: friendly router name for debugging
     # @param cost_D: cost table to neighbors {neighbor: {interface: cost}}
     # @param max_queue_size: max queue length (passed to Interface)
-    def __init__(self, name, cost_D, max_queue_size):
+    def __init__(self, name, cost_D, max_queue_size, lock):
         self.stop = False  # for thread termination
         self.name = name
+        self.threadLock = threading.Lock()
         # Adding router variable
         router = self.name
         # create a list of interfaces
         self.intf_L = [Interface(max_queue_size) for _ in range(len(cost_D))]
         # save neighbors and interfeces on which we connect to them
         self.cost_D = cost_D  # {neighbor: {interface: cost}}
+
+        self.lock = lock
+
 
         # Creating routing tables
         self.rt_tbl_D = {router: {router: 0}}  # {destination: {router: cost}}
@@ -265,17 +269,8 @@ class Router:
             routing_table = ast.literal_eval(p.data_S)
             for data in routing_table:
                 dest = data
-                router = str(list(routing_table[data])[0])
+                router = list(routing_table[data])[0]
                 cost = int(routing_table[data][router])
-
-
-
-                # dest = ''.join(data[0])
-                # router = ''.join(data[1])
-                # cost = int(''.join(data[2]))
-
-
-
                 if dest not in self.rt_tbl_D:
                     self.rt_tbl_D[dest] = {router: cost}
                 else:
@@ -283,9 +278,9 @@ class Router:
                 if self.name not in self.rt_tbl_D[dest]:
                     # It's fricked here
                     self.rt_tbl_D[dest][self.name] = self.rt_tbl_D[dest][router] + self.rt_tbl_D[router][self.name]
+                    print(self.rt_tbl_D[dest][self.name])
                     update = True
                 else:
-                    # And here...
                     if self.rt_tbl_D[dest][router] + self.rt_tbl_D[router][self.name] < self.rt_tbl_D[dest][self.name]:
                         self.rt_tbl_D[dest][self.name] = self.rt_tbl_D[dest][router] + self.rt_tbl_D[router][self.name]
                         update = True
