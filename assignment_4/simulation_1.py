@@ -2,7 +2,6 @@ from assignment_4 import network_1
 from assignment_4 import link_1
 import threading
 from time import sleep
-import sys
 
 # configuration parameters
 router_queue_size = 0  # 0 means unlimited

@@ -264,17 +264,28 @@ class Router:
         if p.prot_S == 'control':
             routing_table = ast.literal_eval(p.data_S)
             for data in routing_table:
-                dest = ''.join(data[0])
-                router = ''.join(data[1])
-                cost = int(''.join(data[2]))
+                dest = data
+                router = str(list(routing_table[data])[0])
+                cost = int(routing_table[data][router])
+
+
+
+                # dest = ''.join(data[0])
+                # router = ''.join(data[1])
+                # cost = int(''.join(data[2]))
+
+
+
                 if dest not in self.rt_tbl_D:
                     self.rt_tbl_D[dest] = {router: cost}
                 else:
                     self.rt_tbl_D[dest][router] = cost
                 if self.name not in self.rt_tbl_D[dest]:
+                    # It's fricked here
                     self.rt_tbl_D[dest][self.name] = self.rt_tbl_D[dest][router] + self.rt_tbl_D[router][self.name]
                     update = True
                 else:
+                    # And here...
                     if self.rt_tbl_D[dest][router] + self.rt_tbl_D[router][self.name] < self.rt_tbl_D[dest][self.name]:
                         self.rt_tbl_D[dest][self.name] = self.rt_tbl_D[dest][router] + self.rt_tbl_D[router][self.name]
                         update = True
