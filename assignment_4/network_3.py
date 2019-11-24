@@ -1,6 +1,8 @@
 import queue
 import threading
 import ast
+# import copy
+# from sys import maxsize
 
 
 # wrapper class for a queue of packets
@@ -173,20 +175,20 @@ class Router:
         for _ in list(self.rt_tbl_D):
             print("╤══════", end="")
         print("╕")
-        print("│ ", self.name, "  ", end="")
+        print("│ ", self.name, " ", end="")
         for dest in sorted(self.rt_tbl_D):
-            print("│  ", dest, " ", end="")
-
+            print("│ ", dest, " ", end="")
         print("│")
         for router in router_list:
             print("╞══════", end="")
             for _ in list(self.rt_tbl_D):
                 print("╪══════", end="")
             print("╡")
-            print("│  ", router, " ", end="")
+            print("│ ", router, " ", end="")
             for dest in sorted(self.rt_tbl_D):
+                # print("dest =", self.rt_tbl_D[dest])
                 cost = int(self.rt_tbl_D[dest][router])
-                print("│  ", cost, " ", end="")
+                print("│ ", cost, "  ", end="")
             print("│  ")
         print("╘══════", end='')
         for _ in list(self.rt_tbl_D):
@@ -261,9 +263,11 @@ class Router:
         if p.prot_S == 'control':
             routing_table = ast.literal_eval(p.data_S)
             for data in routing_table:
+
                 dest = data
                 router = list(routing_table[data])[0]
                 cost = int(routing_table[data][router])
+
                 if dest not in self.rt_tbl_D:
                     self.rt_tbl_D[dest] = {router: cost}
                 else:
@@ -273,7 +277,6 @@ class Router:
                     self.rt_tbl_D[dest][self.name] = self.rt_tbl_D[dest][router] + self.rt_tbl_D[router][self.name]
                     update = True
                 else:
-                    # and here...
                     if self.rt_tbl_D[dest][router] + self.rt_tbl_D[router][self.name] < self.rt_tbl_D[dest][self.name]:
                         self.rt_tbl_D[dest][self.name] = self.rt_tbl_D[dest][router] + self.rt_tbl_D[router][self.name]
                         update = True
