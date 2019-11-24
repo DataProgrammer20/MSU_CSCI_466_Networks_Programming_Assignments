@@ -2,7 +2,6 @@ from assignment_4 import network_3
 from assignment_4 import link_3
 import threading
 from time import sleep
-import sys
 
 # configuration parameters
 router_queue_size = 0  # 0 means unlimited
@@ -21,25 +20,29 @@ if __name__ == '__main__':
     cost_D = {'H1': {0: 1}, 'RB': {1: 1}, 'RC': {2: 2}}  # {neighbor: {interface: cost}}
     router_a = network_3.Router(name='RA',
                                 cost_D=cost_D,
-                                max_queue_size=router_queue_size)
+                                max_queue_size=router_queue_size
+                                )
     object_L.append(router_a)
 
     cost_D = {'RD': {1: 3}, 'RA': {0: 1}}  # {neighbor: {interface: cost}}
     router_b = network_3.Router(name='RB',
                                 cost_D=cost_D,
-                                max_queue_size=router_queue_size)
+                                max_queue_size=router_queue_size
+                                )
     object_L.append(router_b)
 
     cost_D = {'RA': {0: 2}, 'RD': {1: 1}}
     router_c = network_3.Router(name='RC',
                                 cost_D=cost_D,
-                                max_queue_size=router_queue_size)
+                                max_queue_size=router_queue_size
+                               )
     object_L.append(router_c)
 
     cost_D = {'RB': {0: 3}, 'RC': {1: 1}, 'H2': {2: 2}}
     router_d = network_3.Router(name='RD',
                                 cost_D=cost_D,
-                                max_queue_size=router_queue_size)
+                                max_queue_size=router_queue_size
+                               )
     object_L.append(router_d)
 
     # create a Link Layer to keep track of links between network nodes

@@ -140,7 +140,6 @@ class Router:
         self.intf_L = [Interface(max_queue_size) for _ in range(len(cost_D))]
         # save neighbors and interfeces on which we connect to them
         self.cost_D = cost_D  # {neighbor: {interface: cost}}
-
         # Creating routing tables
         self.rt_tbl_D = {router: {router: 0}}  # {destination: {router: cost}}
         self.cs_tbl_D = {}
@@ -176,20 +175,20 @@ class Router:
         for _ in list(self.rt_tbl_D):
             print("╤══════", end="")
         print("╕")
-        print("│ ", self.name, "  ", end="")
+        print("│ ", self.name, " ", end="")
         for dest in sorted(self.rt_tbl_D):
-            print("│  ", dest, " ", end="")
-
+            print("│ ", dest, " ", end="")
         print("│")
         for router in router_list:
             print("╞══════", end="")
             for _ in list(self.rt_tbl_D):
                 print("╪══════", end="")
             print("╡")
-            print("│  ", router, " ", end="")
+            print("│ ", router, " ", end="")
             for dest in sorted(self.rt_tbl_D):
+                # print("dest =", self.rt_tbl_D[dest])
                 cost = int(self.rt_tbl_D[dest][router])
-                print("│  ", cost, " ", end="")
+                print("│ ", cost, "  ", end="")
             print("│  ")
         print("╘══════", end='')
         for _ in list(self.rt_tbl_D):
@@ -261,40 +260,35 @@ class Router:
     def update_routes(self, p, i):
         print('%s: Received routing update %s from interface %d' % (self, p, i))
         update = False
-        if p.prot_S == 'control':
-            routing_table = ast.literal_eval(p.data_S)
-            for data in routing_table:
-                dest = data
-                router = str(list(routing_table[data])[0])
-                cost = int(routing_table[data][router])
+        try:
+            if p.prot_S == 'control':
+                routing_table = ast.literal_eval(p.data_S)
+                for data in routing_table:
 
+                    dest = data
+                    router = list(routing_table[data])[0]
+                    cost = int(routing_table[data][router])
 
-
-                # dest = ''.join(data[0])
-                # router = ''.join(data[1])
-                # cost = int(''.join(data[2]))
-
-
-
-                if dest not in self.rt_tbl_D:
-                    self.rt_tbl_D[dest] = {router: cost}
-                else:
-                    self.rt_tbl_D[dest][router] = cost
-                if self.name not in self.rt_tbl_D[dest]:
-                    # It's fricked here
-                    self.rt_tbl_D[dest][self.name] = self.rt_tbl_D[dest][router] + self.rt_tbl_D[router][self.name]
-                    update = True
-                else:
-                    # And here...
-                    if self.rt_tbl_D[dest][router] + self.rt_tbl_D[router][self.name] < self.rt_tbl_D[dest][self.name]:
+                    if dest not in self.rt_tbl_D:
+                        self.rt_tbl_D[dest] = {router: cost}
+                    else:
+                        self.rt_tbl_D[dest][router] = cost
+                    if self.name not in self.rt_tbl_D[dest]:
+                        # It's fricked here
                         self.rt_tbl_D[dest][self.name] = self.rt_tbl_D[dest][router] + self.rt_tbl_D[router][self.name]
                         update = True
-        else:
-            print("This is not a control packet")
-        if update:
+                    else:
+                        if self.rt_tbl_D[dest][router] + self.rt_tbl_D[router][self.name] < self.rt_tbl_D[dest][self.name]:
+                            self.rt_tbl_D[dest][self.name] = self.rt_tbl_D[dest][router] + self.rt_tbl_D[router][self.name]
+                            update = True
+            else:
+                print("This is not a control packet")
+            if update:
                 self.lowest()
-        else:
-            return
+            else:
+                return
+        except KeyError:
+            pass
 
     # thread target for the host to keep forwarding data
     def run(self):
