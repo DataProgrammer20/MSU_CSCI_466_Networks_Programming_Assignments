@@ -1,8 +1,6 @@
 import queue
 import threading
 import ast
-# import copy
-# from sys import maxsize
 
 
 # wrapper class for a queue of packets
@@ -131,20 +129,15 @@ class Router:
     # @param name: friendly router name for debugging
     # @param cost_D: cost table to neighbors {neighbor: {interface: cost}}
     # @param max_queue_size: max queue length (passed to Interface)
-    def __init__(self, name, cost_D, max_queue_size, lock):
+    def __init__(self, name, cost_D, max_queue_size):
         self.stop = False  # for thread termination
         self.name = name
-        self.threadLock = threading.Lock()
         # Adding router variable
         router = self.name
         # create a list of interfaces
         self.intf_L = [Interface(max_queue_size) for _ in range(len(cost_D))]
         # save neighbors and interfeces on which we connect to them
         self.cost_D = cost_D  # {neighbor: {interface: cost}}
-
-        self.lock = lock
-
-
         # Creating routing tables
         self.rt_tbl_D = {router: {router: 0}}  # {destination: {router: cost}}
         self.cs_tbl_D = {}
@@ -278,9 +271,9 @@ class Router:
                 if self.name not in self.rt_tbl_D[dest]:
                     # It's fricked here
                     self.rt_tbl_D[dest][self.name] = self.rt_tbl_D[dest][router] + self.rt_tbl_D[router][self.name]
-                    print(self.rt_tbl_D[dest][self.name])
                     update = True
                 else:
+                    # and here...
                     if self.rt_tbl_D[dest][router] + self.rt_tbl_D[router][self.name] < self.rt_tbl_D[dest][self.name]:
                         self.rt_tbl_D[dest][self.name] = self.rt_tbl_D[dest][router] + self.rt_tbl_D[router][self.name]
                         update = True
