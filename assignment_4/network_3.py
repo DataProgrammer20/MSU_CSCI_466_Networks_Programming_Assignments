@@ -186,7 +186,6 @@ class Router:
             print("╡")
             print("│ ", router, " ", end="")
             for dest in sorted(self.rt_tbl_D):
-                # print("dest =", self.rt_tbl_D[dest])
                 cost = int(self.rt_tbl_D[dest][router])
                 print("│ ", cost, "  ", end="")
             print("│  ")

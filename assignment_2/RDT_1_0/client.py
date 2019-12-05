@@ -1,7 +1,7 @@
 import argparse
 import time
 
-from assignment_2 import rdt
+from assignment_2.RDT_1_0 import rdt
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Quotation client talking to a Pig Latin server.')

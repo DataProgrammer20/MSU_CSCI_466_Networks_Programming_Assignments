@@ -2,7 +2,7 @@ import argparse
 import hashlib
 from time import sleep
 
-from assignment_2 import network
+from assignment_2.RDT_1_0 import network
 
 
 class Packet:
