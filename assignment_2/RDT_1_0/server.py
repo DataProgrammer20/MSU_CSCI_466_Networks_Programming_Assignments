@@ -1,7 +1,7 @@
 import argparse
 import time
 
-from assignment_2 import rdt
+from assignment_2.RDT_1_0 import rdt
 
 
 def makePigLatin(word):
