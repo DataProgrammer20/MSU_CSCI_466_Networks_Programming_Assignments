@@ -113,7 +113,7 @@ class RDT:
                 # Check if we have received enough packet bytes
                 if len(self.byte_buffer) >= packet.length_S_length:
                     # Extract the length of the packet
-                    length = len(self.byte_buffer[:packet.length_S_length])
+                    length = int(self.byte_buffer[:packet.length_S_length])
                     # Check if we have enough bytes to read the whole packet
                     if len(self.byte_buffer) >= length:
                         # If so, check if the packet is corrupted
@@ -170,6 +170,7 @@ class RDT:
                     self.network.udt_send(ack.get_byte_S())
                     # Set timer, wait for more packets from sender
                     timer = time() + 0.2
+                    self.receiver_byte_buffer = ''
                     # Create new receiver byte buffer
                     while time() < timer:
                         self.duplicate = False
